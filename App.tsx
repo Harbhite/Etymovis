@@ -27,6 +27,53 @@ type Page = 'home' | 'about' | 'garden' | 'login';
 type ExportFormat = 'png' | 'svg' | 'pdf' | 'jpeg';
 type TooltipVariant = 'modern' | 'manuscript';
 
+const VIZ_OPTIONS = [
+  { id: 'tree', label: 'Botanical Tree' },
+  { id: 'flowchart', label: 'Flowchart' },
+  { id: 'fishbone', label: 'Fishbone' },
+  { id: 'radial', label: 'Radial' },
+  { id: 'sunburst', label: 'Sunburst' },
+  { id: 'edgeBundling', label: 'Bundling' },
+  { id: 'force', label: 'Force' },
+  { id: 'sankey', label: 'Flow' },
+  { id: 'chronological', label: 'Timeline' },
+  { id: 'treemap', label: 'Treemap' },
+  { id: 'packing', label: 'Packing' },
+  { id: 'list', label: 'Manuscript' }
+];
+
+const Confetti: React.FC = () => {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[2000] overflow-hidden">
+      {Array.from({ length: 50 }).map((_, i) => (
+        <div
+          key={i}
+          className="absolute w-2 h-2 rounded-sm"
+          style={{
+            backgroundColor: ['#4A5D45', '#C27B66', '#A68A78', '#D4A373'][Math.floor(Math.random() * 4)],
+            top: '50%',
+            left: '50%',
+            animation: `confetti-pop-${i} 2.5s cubic-bezier(0.1, 1, 0.1, 1) forwards`,
+          }}
+        />
+      ))}
+      <style dangerouslySetInnerHTML={{ __html: Array.from({ length: 50 }).map((_, i) => {
+        const angle = (i / 50) * 360 + (Math.random() * 20);
+        const dist = 100 + Math.random() * 400;
+        const x = Math.cos(angle * Math.PI / 180) * dist;
+        const y = Math.sin(angle * Math.PI / 180) * dist - (Math.random() * 100);
+        return `
+          @keyframes confetti-pop-${i} {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
+            50% { opacity: 1; }
+            100% { transform: translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(1) rotate(${Math.random() * 720}deg); opacity: 0; }
+          }
+        `;
+      }).join('\n') }} />
+    </div>
+  );
+};
+
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<Page>('home');
   const [etymologyData, setEtymologyData] = useState<EtymologyTree | null>(null);
@@ -38,6 +85,7 @@ const App: React.FC = () => {
   const [exportTrigger, setExportTrigger] = useState<{ format: ExportFormat | null; timestamp: number } | null>(null);
   const [showExportOptions, setShowExportOptions] = useState(false);
   const [tooltipVariant, setTooltipVariant] = useState<TooltipVariant>('modern');
+  const [showConfetti, setShowConfetti] = useState(false);
   const exportContainerRef = useRef<HTMLDivElement>(null);
   const isExportingRef = useRef<boolean>(false);
 
@@ -46,7 +94,6 @@ const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: any } | null>(null);
 
-  // Close export dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (exportContainerRef.current && !exportContainerRef.current.contains(event.target as Node)) {
@@ -65,6 +112,7 @@ const App: React.FC = () => {
     setLoadingProgress(0);
     setError(null);
     setEtymologyData(null);
+    setShowConfetti(false);
 
     let currentP = 0;
     const startTime = Date.now();
@@ -83,6 +131,8 @@ const App: React.FC = () => {
       
       setLoadingProgress(100);
       setEtymologyData(data);
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3000);
     } catch (err: any) {
       clearInterval(progressInterval);
       setError("Bloom failed. Try another word.");
@@ -92,18 +142,12 @@ const App: React.FC = () => {
     }
   };
 
-  /**
-   * Enhanced export handler with strict execution control to prevent 
-   * accidental double-downloads on touch or render loops.
-   */
   const handleContentExport = useCallback(async (content: SVGSVGElement | HTMLElement | null, isSvg: boolean) => {
-    // If no content or no active trigger, or if we are already exporting, ignore.
     if (!content || !exportTrigger || isExportingRef.current) return;
     
     const { format } = exportTrigger;
     if (!format) return;
 
-    // Immediately consume the trigger and set flag to prevent racing conditions
     isExportingRef.current = true;
     setExportTrigger(null);
 
@@ -115,7 +159,6 @@ const App: React.FC = () => {
     } catch (err) { 
       console.error("Export failed:", err);
     } finally {
-      // Re-enable exports after a small cooling period
       setTimeout(() => {
         isExportingRef.current = false;
       }, 500);
@@ -124,8 +167,10 @@ const App: React.FC = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-dark-bg text-bg-paper' : 'bg-bg-paper text-text-ink'}`}>
+      {showConfetti && <Confetti />}
+
       {/* Gaussian Blurred Navigation */}
-      <nav className="fixed top-8 left-1/2 -translate-x-1/2 bg-dark-bg/70 backdrop-blur-xl border border-white/10 p-3 px-6 rounded-full flex items-center gap-6 text-white z-[100] shadow-2xl text-sm font-medium transition-all duration-500 max-w-[95%] sm:max-w-none">
+      <nav className={`fixed top-8 left-1/2 -translate-x-1/2 bg-dark-bg/70 backdrop-blur-xl border border-white/10 p-3 px-6 rounded-full flex items-center gap-6 text-white z-[100] shadow-2xl text-sm font-medium transition-all duration-500 max-w-[95%] sm:max-w-none ${isFullScreen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
         <div className="flex items-center gap-2 font-serif italic text-lg cursor-pointer" onClick={() => setActivePage('home')}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           <span className="hidden sm:inline">Etymos</span>
@@ -160,20 +205,7 @@ const App: React.FC = () => {
         )}
 
         <div className="mt-8 flex flex-wrap justify-center gap-2 max-w-5xl px-2">
-          {[
-            { id: 'tree', label: 'Botanical Tree' },
-            { id: 'flowchart', label: 'Flowchart' },
-            { id: 'fishbone', label: 'Fishbone (Adf)' },
-            { id: 'radial', label: 'Radial' },
-            { id: 'sunburst', label: 'Sunburst' },
-            { id: 'edgeBundling', label: 'Bundling' },
-            { id: 'force', label: 'Force' },
-            { id: 'sankey', label: 'Flow (Sankey)' },
-            { id: 'chronological', label: 'Timeline' },
-            { id: 'treemap', label: 'Treemap' },
-            { id: 'packing', label: 'Packing' },
-            { id: 'list', label: 'Manuscript' }
-          ].map(viz => (
+          {VIZ_OPTIONS.map(viz => (
             <button
               key={viz.id}
               onClick={() => setVisualizationMode(viz.id as VisualizationMode)}
@@ -268,8 +300,34 @@ const App: React.FC = () => {
         )}
       </div>
 
+      {/* Full-Screen Controls Overlay */}
+      {etymologyData && isFullScreen && (
+        <div className="fixed bottom-0 left-0 right-0 z-[1200] pb-24 sm:pb-8 flex flex-col items-center pointer-events-none">
+          {/* Viz Switcher in Full Screen */}
+          <div className={`flex items-center gap-2 p-2 rounded-2xl backdrop-blur-xl border border-white/10 pointer-events-auto overflow-x-auto max-w-[90vw] no-scrollbar shadow-2xl ${isDarkMode ? 'bg-black/40' : 'bg-white/40'}`}>
+            {VIZ_OPTIONS.map(viz => (
+              <button
+                key={viz.id}
+                onClick={() => setVisualizationMode(viz.id as VisualizationMode)}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  visualizationMode === viz.id 
+                    ? (isDarkMode ? 'bg-accent-terra text-white' : 'bg-accent-green text-white') 
+                    : (isDarkMode ? 'text-white/60 hover:text-white' : 'text-text-ink/60 hover:text-text-ink')
+                }`}
+              >
+                {viz.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {etymologyData && (
-        <button onClick={()=>setIsFullScreen(!isFullScreen)} className="fixed right-6 bottom-6 p-4 rounded-full bg-dark-bg text-white shadow-xl z-[1100] active:scale-95 transition-transform">
+        <button 
+          onClick={()=>setIsFullScreen(!isFullScreen)} 
+          className="fixed right-6 bottom-6 p-4 rounded-full bg-dark-bg text-white shadow-xl z-[1300] active:scale-95 transition-transform"
+          title={isFullScreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+        >
           {isFullScreen ? (
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3v5H3M16 3v5h5M8 21v-5H3M16 21v-5h5"/></svg>
           ) : (
@@ -299,6 +357,13 @@ const App: React.FC = () => {
         }
         .animate-slide-in-top {
           animation: slide-in-top 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}} />
     </div>
