@@ -1,6 +1,4 @@
 <div align="center">
-<img width="1200" height="475" alt="GHBanner" src="![17690865135736180433283545004168](https://github.com/user-attachments/assets/d1debdfb-ad21-4a27-aedf-a5a3ba1d480d)
-" />
 </div>
 
 # Etymos: Trace the Ancestry of Your Thoughts
