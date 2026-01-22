@@ -56,25 +56,44 @@ const SunburstChart: React.FC<SunburstChartProps> = ({ data, exportTrigger, onCo
 
     const color = d3.scaleOrdinal(d3.schemeTableau10);
 
-    g.selectAll('path')
+    const paths = g.selectAll('path')
       .data(root.descendants().filter(d => d.depth))
       .join('path')
       .attr('fill', d => color(d.data.language))
       .attr('d', arc)
       .attr('stroke', '#fff')
       .attr('stroke-width', 1)
+      .attr('opacity', 0)
       .on('mouseenter', (event, d) => {
+        d3.select(event.currentTarget).attr('opacity', 0.8);
         onNodeHover({
           x: event.clientX,
           y: event.clientY,
           content: { word: d.data.word, language: d.data.language, meaning: d.data.meaning }
         });
       })
-      .on('mouseleave', onNodeLeave);
+      .on('mouseleave', (event) => {
+        d3.select(event.currentTarget).attr('opacity', 1);
+        onNodeLeave();
+      });
+
+    paths.transition()
+      .duration(800)
+      .ease(d3.easeCubicOut)
+      .delay((d) => d.depth * 200)
+      .attr('opacity', 1)
+      .attrTween('d', function(d) {
+          const i = d3.interpolate(d.startAngle+0.1, d.endAngle);
+          return function(t) {
+              d.endAngle = i(t);
+              return arc(d) || '';
+          };
+      });
 
     g.selectAll('text')
       .data(root.descendants().filter(d => d.depth && (d.x1 - d.x0) > 0.05))
       .join('text')
+      .attr('opacity', 0)
       .attr('transform', function(d) {
         const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
         const y = (d.y0 + d.y1) / 2;
@@ -86,7 +105,11 @@ const SunburstChart: React.FC<SunburstChartProps> = ({ data, exportTrigger, onCo
       .attr('font-size', '10px')
       .attr('pointer-events', 'none')
       .attr('fill', '#2A2622')
-      .text(d => d.data.word);
+      .text(d => d.data.word)
+      .transition()
+      .duration(800)
+      .delay((d) => d.depth * 200 + 400)
+      .attr('opacity', 1);
 
   }, [data, dimensions, onNodeHover, onNodeLeave]);
 

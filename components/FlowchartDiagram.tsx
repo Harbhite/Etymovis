@@ -249,11 +249,12 @@ const FlowchartDiagram: React.FC<FlowchartDiagramProps> = ({ data, searchTerm, e
               height={NODE_HEIGHT}
               onMouseEnter={(e) => onNodeHover({ x: e.clientX, y: e.clientY, content: node })}
               onMouseLeave={onNodeLeave}
-              className="animate-fade-in"
+              className="animate-fade-in-scale opacity-0"
+              style={{ animationDelay: `${nodes.indexOf(node) * 50}ms`, animationFillMode: 'forwards' }}
             >
               <div
                 className={`flex flex-col border-2 rounded-lg shadow-soft cursor-pointer h-full transition-all duration-300
-                            ${isDarkMode ? 'bg-gray-800 border-opacity-40 hover:bg-gray-700' : 'bg-white hover:shadow-deep'}`}
+                            ${isDarkMode ? 'bg-gray-800 border-opacity-40 hover:bg-gray-700' : 'bg-white hover:shadow-deep hover:scale-105'}`}
                 style={{ borderColor: node.color }}
               >
                 <div 
@@ -278,12 +279,12 @@ const FlowchartDiagram: React.FC<FlowchartDiagramProps> = ({ data, searchTerm, e
         </g>
       </svg>
       <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes fade-in {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+        @keyframes fade-in-scale {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
         }
-        .animate-fade-in {
-          animation: fade-in 0.4s ease-out forwards;
+        .animate-fade-in-scale {
+          animation: fade-in-scale 0.5s ease-out forwards;
         }
       `}} />
     </div>

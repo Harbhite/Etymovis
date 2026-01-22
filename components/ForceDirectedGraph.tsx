@@ -190,7 +190,7 @@ const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({ data, exportTri
           <g
             key={node.id}
             transform={`translate(${node.x}, ${node.y})`}
-            className="node-group cursor-grab active:cursor-grabbing"
+            className="node-group cursor-grab active:cursor-grabbing animate-pop-in"
           >
             <circle
               className="node-circle transition-all duration-100 ease-linear hover:scale-110 shadow-sm"
@@ -213,6 +213,15 @@ const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({ data, exportTri
           </g>
         ))}
       </svg>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes pop-in {
+          from { opacity: 0; transform: scale(0); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-pop-in {
+          animation: pop-in 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+      `}} />
     </div>
   );
 };

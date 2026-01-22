@@ -64,7 +64,7 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({ data, exportTrigger, onCo
 
     const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-    svg.append('g')
+    const rects = svg.append('g')
       .selectAll('rect')
       .data(nodes)
       .join('rect')
@@ -73,16 +73,26 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({ data, exportTrigger, onCo
       .attr('height', d => d.y1! - d.y0!)
       .attr('width', d => d.x1! - d.x0!)
       .attr('fill', d => color((d as any).language))
+      .attr('opacity', 0)
       .on('mouseenter', (event, d) => {
+        d3.select(event.currentTarget).attr('opacity', 0.8);
         onNodeHover({
           x: event.clientX,
           y: event.clientY,
           content: { word: (d as any).name, language: (d as any).language, meaning: (d as any).meaning }
         });
       })
-      .on('mouseleave', onNodeLeave);
+      .on('mouseleave', (event) => {
+        d3.select(event.currentTarget).attr('opacity', 1);
+        onNodeLeave();
+      });
 
-    svg.append('g')
+    rects.transition()
+      .duration(600)
+      .delay((_, i) => i * 50)
+      .attr('opacity', 1);
+
+    const paths = svg.append('g')
       .attr('fill', 'none')
       .attr('stroke-opacity', 0.5)
       .selectAll('g')
@@ -90,18 +100,31 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({ data, exportTrigger, onCo
       .join('path')
       .attr('d', sankeyLinkHorizontal())
       .attr('stroke', d => color(((d.source as any).language)))
-      .attr('stroke-width', d => Math.max(1, d.width!));
+      .attr('stroke-width', d => Math.max(1, d.width!))
+      .attr('stroke-dasharray', function(this: SVGPathElement) { return this.getTotalLength(); })
+      .attr('stroke-dashoffset', function(this: SVGPathElement) { return this.getTotalLength(); });
+
+    paths.transition()
+      .duration(1000)
+      .ease(d3.easeCubicOut)
+      .delay(500)
+      .attr('stroke-dashoffset', 0);
 
     svg.append('g')
       .style('font', '10px sans-serif')
       .selectAll('text')
       .data(nodes)
       .join('text')
+      .attr('opacity', 0)
       .attr('x', d => d.x0! < dimensions.width / 2 ? d.x1! + 6 : d.x0! - 6)
       .attr('y', d => (d.y1! + d.y0!) / 2)
       .attr('dy', '0.35em')
       .attr('text-anchor', d => d.x0! < dimensions.width / 2 ? 'start' : 'end')
-      .text(d => (d as any).name);
+      .text(d => (d as any).name)
+      .transition()
+      .duration(600)
+      .delay(800)
+      .attr('opacity', 1);
 
   }, [data, dimensions, onNodeHover, onNodeLeave]);
 

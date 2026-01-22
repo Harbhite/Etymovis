@@ -269,20 +269,41 @@ const TreeDiagram: React.FC<TreeDiagramProps> = ({ data, searchTerm, exportTrigg
               />
             );
           }))}
-          {visibleNodes.map(node => (
+          {visibleNodes.map((node, i) => (
             <foreignObject key={node.id} x={node.x - NODE_WIDTH / 2} y={node.y - NODE_HEIGHT / 2} width={NODE_WIDTH} height={NODE_HEIGHT}>
               <div
-                className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 shadow-soft transition-all duration-300
-                            ${isDarkMode ? 'bg-gray-800 border-opacity-40' : 'bg-white'}`}
-                style={{ borderColor: node.color }}
+                className={`flex flex-col items-center justify-center p-2 rounded-xl border-2 shadow-soft transition-all duration-500
+                            ${isDarkMode ? 'bg-gray-800 border-opacity-40' : 'bg-white'}
+                            hover:shadow-deep hover:scale-105 opacity-0 animate-fade-in-scale`}
+                style={{
+                    borderColor: node.color,
+                    animationDelay: `${i * 50}ms`,
+                    animationFillMode: 'forwards'
+                }}
+                onMouseEnter={(e) => onNodeHover({ x: e.clientX, y: e.clientY, content: node })}
+                onMouseLeave={onNodeLeave}
               >
                 <div className="font-sans text-[10px] uppercase font-bold" style={{ color: node.color }}>{node.language}</div>
                 <div className={`font-serif text-lg font-semibold ${isDarkMode ? 'text-white' : 'text-text-ink'}`}>{node.word}</div>
+                {node.meaning && (
+                   <div className={`text-[10px] italic line-clamp-2 mt-0.5 ${isDarkMode ? 'text-white/60' : 'text-text-light'}`}>
+                     "{node.meaning}"
+                   </div>
+                )}
               </div>
             </foreignObject>
           ))}
         </g>
       </svg>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes fade-in-scale {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-fade-in-scale {
+          animation: fade-in-scale 0.5s ease-out forwards;
+        }
+      `}} />
     </div>
   );
 };

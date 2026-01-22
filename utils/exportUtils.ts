@@ -73,8 +73,34 @@ export const exportSvgAs = async (svgElement: SVGSVGElement, format: ExportForma
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       pdf.save(`${fileName}.pdf`);
     } else {
-      const dataUrl = canvas.toDataURL(mimeType, 0.9);
-      downloadFile(dataUrl, fileName, extension);
+      // For JPEG, we need a white background because transparency becomes black
+      let finalDataUrl;
+      if (format === 'jpeg') {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const w = canvas.width;
+          const h = canvas.height;
+          // Create a new canvas to compose the white background
+          const newCanvas = document.createElement('canvas');
+          newCanvas.width = w;
+          newCanvas.height = h;
+          const newCtx = newCanvas.getContext('2d');
+          if (newCtx) {
+             newCtx.fillStyle = '#FFFFFF';
+             newCtx.fillRect(0, 0, w, h);
+             newCtx.drawImage(canvas, 0, 0);
+             finalDataUrl = newCanvas.toDataURL(mimeType, 0.9);
+          } else {
+             finalDataUrl = canvas.toDataURL(mimeType, 0.9);
+          }
+        } else {
+           finalDataUrl = canvas.toDataURL(mimeType, 0.9);
+        }
+      } else {
+        finalDataUrl = canvas.toDataURL(mimeType, 0.9);
+      }
+
+      downloadFile(finalDataUrl, fileName, extension);
     }
   } catch (error) {
     console.error(`Error exporting as ${format}:`, error);
@@ -113,8 +139,25 @@ export const exportHtmlAs = async (htmlElement: HTMLElement, format: ExportForma
       pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
       pdf.save(`${fileName}.pdf`);
     } else {
-      const dataUrl = canvas.toDataURL(mimeType, 0.9);
-      downloadFile(dataUrl, fileName, extension);
+      // For JPEG, ensure white background
+      let finalDataUrl;
+      if (format === 'jpeg') {
+         const newCanvas = document.createElement('canvas');
+         newCanvas.width = canvas.width;
+         newCanvas.height = canvas.height;
+         const newCtx = newCanvas.getContext('2d');
+         if (newCtx) {
+            newCtx.fillStyle = '#FFFFFF';
+            newCtx.fillRect(0, 0, canvas.width, canvas.height);
+            newCtx.drawImage(canvas, 0, 0);
+            finalDataUrl = newCanvas.toDataURL(mimeType, 0.9);
+         } else {
+            finalDataUrl = canvas.toDataURL(mimeType, 0.9);
+         }
+      } else {
+         finalDataUrl = canvas.toDataURL(mimeType, 0.9);
+      }
+      downloadFile(finalDataUrl, fileName, extension);
     }
   } catch (error) {
     console.error(`Error exporting HTML as ${format}:`, error);
