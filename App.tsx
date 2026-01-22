@@ -302,8 +302,8 @@ const App: React.FC = () => {
 
       {/* Full-Screen Controls Overlay */}
       {etymologyData && isFullScreen && (
-        <div className="fixed bottom-0 left-0 right-0 z-[1200] pb-24 sm:pb-8 flex flex-col items-center pointer-events-none">
-          {/* Viz Switcher in Full Screen */}
+        <div className="fixed top-0 left-0 right-0 z-[1200] pt-8 flex flex-col items-center pointer-events-none">
+          {/* Viz Switcher in Full Screen - Moved to Top */}
           <div className={`flex items-center gap-2 p-2 rounded-2xl backdrop-blur-xl border border-white/10 pointer-events-auto overflow-x-auto max-w-[90vw] no-scrollbar shadow-2xl ${isDarkMode ? 'bg-black/40' : 'bg-white/40'}`}>
             {VIZ_OPTIONS.map(viz => (
               <button

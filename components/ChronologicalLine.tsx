@@ -167,11 +167,17 @@ const ChronologicalLine: React.FC<ChronologicalLineProps> = ({ data, exportTrigg
       setAnimatedNodes([]);
 
       // Staggered animation trigger
+      const timeouts: NodeJS.Timeout[] = [];
       initialFlatNodes.forEach((node, index) => {
-        setTimeout(() => {
+        const timeout = setTimeout(() => {
           setAnimatedNodes(prev => [...prev, node.id]);
         }, index * 100 + 100);
+        timeouts.push(timeout);
       });
+
+      return () => {
+        timeouts.forEach(clearTimeout);
+      };
     } else {
       setNodes([]);
     }
