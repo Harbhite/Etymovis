@@ -120,12 +120,18 @@ const HierarchicalEdgeBundling: React.FC<HierarchicalEdgeBundlingProps> = ({ dat
                 fill="none"
                 stroke={isHighlighted ? color : `${color}44`}
                 strokeWidth={isHighlighted ? 2.5 : 1}
-                className="transition-all duration-300"
+                className="transition-all duration-300 animate-draw-stroke"
+                style={{
+                    strokeDasharray: 1000,
+                    strokeDashoffset: 1000,
+                    animation: 'draw-stroke 2s ease-out forwards',
+                    animationDelay: `${i * 10}ms`
+                }}
               />
             );
           })}
 
-          {nodes.map((node) => {
+          {nodes.map((node, i) => {
             const family = getLanguageFamily(node.data.language);
             const color = LANGUAGE_FAMILY_COLORS[family] || LANGUAGE_FAMILY_COLORS['Other'];
             const isHovered = hoveredNodeId === node.data.word;
@@ -136,7 +142,8 @@ const HierarchicalEdgeBundling: React.FC<HierarchicalEdgeBundlingProps> = ({ dat
                 transform={`rotate(${node.x * 180 / Math.PI - 90}) translate(${node.y}, 0)`}
                 onMouseEnter={() => setHoveredNodeId(node.data.word)}
                 onMouseLeave={() => setHoveredNodeId(null)}
-                className="cursor-pointer"
+                className="cursor-pointer opacity-0 animate-fade-in"
+                style={{ animationDelay: `${i * 20 + 500}ms`, animationFillMode: 'forwards' }}
               >
                 <circle
                   r={isHovered ? NODE_RADIUS_BASE * 1.5 : NODE_RADIUS_BASE}
@@ -161,6 +168,21 @@ const HierarchicalEdgeBundling: React.FC<HierarchicalEdgeBundlingProps> = ({ dat
           })}
         </g>
       </svg>
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes draw-stroke {
+          to { stroke-dashoffset: 0; }
+        }
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        .animate-draw-stroke {
+            /* animation added inline */
+        }
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+      `}} />
     </div>
   );
 };

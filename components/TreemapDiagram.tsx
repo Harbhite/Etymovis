@@ -49,7 +49,13 @@ const TreemapDiagram: React.FC<TreemapDiagramProps> = ({ data, exportTrigger, on
     const nodes = svg.selectAll('g')
       .data(root.descendants())
       .join('g')
-      .attr('transform', d => `translate(${d.x0},${d.y0})`);
+      .attr('transform', d => `translate(${d.x0},${d.y0})`)
+      .attr('opacity', 0);
+
+    nodes.transition()
+      .duration(600)
+      .delay((d) => d.depth * 100)
+      .attr('opacity', 1);
 
     const color = d3.scaleOrdinal(d3.schemePastel1);
 
@@ -58,14 +64,19 @@ const TreemapDiagram: React.FC<TreemapDiagramProps> = ({ data, exportTrigger, on
       .attr('height', d => d.y1 - d.y0)
       .attr('fill', d => color(d.depth.toString()))
       .attr('stroke', '#2A262222')
+      .attr('rx', 4)
       .on('mouseenter', (event, d) => {
+        d3.select(event.currentTarget).attr('stroke', '#2A2622').attr('stroke-width', 2);
         onNodeHover({
           x: event.clientX,
           y: event.clientY,
           content: { word: d.data.word, language: d.data.language, meaning: d.data.meaning }
         });
       })
-      .on('mouseleave', onNodeLeave);
+      .on('mouseleave', (event) => {
+        d3.select(event.currentTarget).attr('stroke', '#2A262222').attr('stroke-width', 1);
+        onNodeLeave();
+      });
 
     nodes.append('text')
       .attr('x', 5)
@@ -74,7 +85,12 @@ const TreemapDiagram: React.FC<TreemapDiagramProps> = ({ data, exportTrigger, on
       .attr('font-weight', '600')
       .attr('fill', '#2A2622')
       .attr('pointer-events', 'none')
-      .text(d => d.data.word);
+      .text(d => (d.x1 - d.x0) > 40 ? d.data.word : '')
+      .attr('opacity', 0)
+      .transition()
+      .duration(400)
+      .delay((d) => d.depth * 100 + 400)
+      .attr('opacity', 1);
 
   }, [data, dimensions, onNodeHover, onNodeLeave]);
 

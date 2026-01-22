@@ -63,7 +63,8 @@ const RadialTree: React.FC<RadialTreeProps> = ({ data, exportTrigger, onContentR
       .attr('opacity', 0);
 
     links.transition()
-      .duration(800)
+      .duration(1000)
+      .ease(d3.easeCubicOut)
       .delay((_, i) => i * 10)
       .attr('opacity', 1);
 
@@ -75,8 +76,9 @@ const RadialTree: React.FC<RadialTreeProps> = ({ data, exportTrigger, onContentR
       .attr('opacity', 0);
 
     node.transition()
-      .duration(500)
-      .delay((d) => d.depth * 100)
+      .duration(800)
+      .ease(d3.easeBackOut.overshoot(1.7))
+      .delay((d) => d.depth * 150)
       .attr('opacity', 1);
 
     node.append('circle')

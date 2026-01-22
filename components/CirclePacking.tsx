@@ -51,21 +51,37 @@ const CirclePacking: React.FC<CirclePackingProps> = ({ data, exportTrigger, onCo
     const nodes = svg.selectAll('g')
       .data(root.descendants())
       .join('g')
-      .attr('transform', d => `translate(${d.x},${d.y})`);
+      .attr('transform', d => `translate(${d.x},${d.y})`)
+      .attr('opacity', 0);
+
+    nodes.transition()
+      .duration(800)
+      .ease(d3.easeCubicOut)
+      .delay((d) => d.depth * 200)
+      .attr('opacity', 1);
 
     nodes.append('circle')
-      .attr('r', d => d.r)
+      .attr('r', d => 0) // start radius at 0
       .attr('fill', d => d.children ? '#A68A7833' : '#C27B66')
       .attr('stroke', '#2A262244')
       .attr('stroke-width', 1)
       .on('mouseenter', (event, d) => {
+        d3.select(event.currentTarget).attr('stroke', '#2A2622').attr('stroke-width', 2);
         onNodeHover({
           x: event.clientX,
           y: event.clientY,
           content: { word: d.data.word, language: d.data.language, meaning: d.data.meaning }
         });
       })
-      .on('mouseleave', onNodeLeave);
+      .on('mouseleave', (event) => {
+         d3.select(event.currentTarget).attr('stroke', '#2A262244').attr('stroke-width', 1);
+         onNodeLeave();
+      })
+      .transition()
+      .duration(800)
+      .ease(d3.easeBackOut.overshoot(1.7))
+      .delay((d) => d.depth * 200)
+      .attr('r', d => d.r);
 
     nodes.filter(d => d.r > 15)
       .append('text')
@@ -74,7 +90,12 @@ const CirclePacking: React.FC<CirclePackingProps> = ({ data, exportTrigger, onCo
       .attr('font-size', d => Math.min(d.r / 3, 14) + 'px')
       .attr('fill', d => d.children ? '#2A2622' : '#fff')
       .attr('pointer-events', 'none')
-      .text(d => d.data.word);
+      .text(d => d.data.word)
+      .attr('opacity', 0)
+      .transition()
+      .duration(800)
+      .delay((d) => d.depth * 200 + 400)
+      .attr('opacity', 1);
 
   }, [data, dimensions, onNodeHover, onNodeLeave]);
 
