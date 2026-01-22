@@ -47,24 +47,31 @@ const HierarchicalEdgeBundling: React.FC<HierarchicalEdgeBundlingProps> = ({ dat
   const [radialLayoutRadius, setRadialLayoutRadius] = useState(0);
 
   useLayoutEffect(() => {
-    if (containerRef.current && data) {
-      const { width, height } = containerRef.current.getBoundingClientRect();
-      const actualSize = Math.max(100, Math.min(width, isFullScreen ? window.innerHeight : height));
-      setSvgDimensions({ width: actualSize, height: actualSize });
+    const handleResize = () => {
+      if (containerRef.current && data) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        const actualSize = Math.max(100, Math.min(width, isFullScreen ? window.innerHeight : height));
+        setSvgDimensions({ width: actualSize, height: actualSize });
 
-      const radius = actualSize / 2 - 80;
-      setRadialLayoutRadius(radius);
+        const radius = actualSize / 2 - 80;
+        setRadialLayoutRadius(radius);
 
-      const treeLayout = d3.tree<EtymologyTree>()
-        .size([2 * Math.PI, Math.max(1, radius)])
-        .separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth);
+        const treeLayout = d3.tree<EtymologyTree>()
+          .size([2 * Math.PI, Math.max(1, radius)])
+          .separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth);
 
-      const root = d3.hierarchy(data, d => d.children);
-      treeLayout(root);
+        const root = d3.hierarchy(data, d => d.children);
+        treeLayout(root);
 
-      setNodes(root.descendants());
-      setLinks(root.links());
-    }
+        setNodes(root.descendants());
+        setLinks(root.links());
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
   }, [data, isFullScreen]);
 
   useEffect(() => {

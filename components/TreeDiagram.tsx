@@ -197,18 +197,29 @@ const TreeDiagram: React.FC<TreeDiagramProps> = ({ data, searchTerm, exportTrigg
   }, [data, flattenTree]);
 
   useLayoutEffect(() => {
-    if (containerRef.current) {
-      const { width, height } = containerRef.current.getBoundingClientRect();
-      const actualHeight = isFullScreen ? window.innerHeight : Math.max(height, 600);
-      setSvgDimensions({ width: Math.max(width, 100), height: actualHeight });
+    const handleResize = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        const actualHeight = isFullScreen ? window.innerHeight : Math.max(height, 600);
+        setSvgDimensions({ width: Math.max(width, 100), height: actualHeight });
 
-      if (nodes.length > 0 && !initialTransformSet) {
-        const layout = calculateLayout(nodes, width, actualHeight);
-        setNodes(layout);
-        setInitialTransformSet(true);
-        setTransformState({ scale: 0.8, translateX: 100, translateY: 0 });
+        if (nodes.length > 0) {
+           // Always re-calculate layout on resize to ensure centering
+           const layout = calculateLayout(nodes, width, actualHeight);
+           setNodes(layout);
+
+           if (!initialTransformSet) {
+             setInitialTransformSet(true);
+             setTransformState({ scale: 0.8, translateX: 100, translateY: 0 });
+           }
+        }
       }
-    }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
   }, [nodes.length, isFullScreen, initialTransformSet, calculateLayout]);
 
   const getPath = (startNode: MindmapNode, endNode: MindmapNode): string => {

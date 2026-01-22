@@ -143,22 +143,29 @@ const FlowchartDiagram: React.FC<FlowchartDiagramProps> = ({ data, searchTerm, e
   }, [data, flattenTree]);
 
   useLayoutEffect(() => {
-    if (containerRef.current) {
-      const { width, height } = containerRef.current.getBoundingClientRect();
-      const actualHeight = isFullScreen ? window.innerHeight : height;
-      setSvgDimensions({ width, height: actualHeight });
+    const handleResize = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        const actualHeight = isFullScreen ? window.innerHeight : height;
+        setSvgDimensions({ width, height: actualHeight });
 
-      if (nodes.length > 0) {
-        setNodes(prev => {
-          const updated = calculateLayout(prev, width, actualHeight);
-          if (!initialTransformSet && updated.length > 0) {
-            setInitialTransformSet(true);
-            setTransformState({ scale: 0.9, translateX: 50, translateY: 0 });
-          }
-          return updated;
-        });
+        if (nodes.length > 0) {
+          setNodes(prev => {
+            const updated = calculateLayout(prev, width, actualHeight);
+            if (!initialTransformSet && updated.length > 0) {
+              setInitialTransformSet(true);
+              setTransformState({ scale: 0.9, translateX: 50, translateY: 0 });
+            }
+            return updated;
+          });
+        }
       }
-    }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
   }, [nodes.length, calculateLayout, isFullScreen]);
 
   const handleMouseDown = (e: React.MouseEvent) => {

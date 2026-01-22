@@ -101,17 +101,29 @@ const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({ data, exportTri
     }
   }, [data, flattenTree]);
 
-  useLayoutEffect(() => {
-    if (!containerRef.current || nodes.length === 0) return;
+  useEffect(() => {
+    const handleResize = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        const actualHeight = isFullScreen ? window.innerHeight : height;
+        setSvgDimensions({ width, height: actualHeight });
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isFullScreen]);
 
-    const { width, height } = containerRef.current.getBoundingClientRect();
-    const actualHeight = isFullScreen ? window.innerHeight : height;
-    setSvgDimensions({ width, height: actualHeight });
+  useLayoutEffect(() => {
+    if (!containerRef.current || nodes.length === 0 || svgDimensions.width === 0) return;
+
+    // Use current dimensions for center force
+    const { width, height } = svgDimensions;
 
     const simulation = d3.forceSimulation(nodes)
       .force('link', d3.forceLink(links).id((d: any) => d?.id || '').distance(LINK_DISTANCE))
       .force('charge', d3.forceManyBody().strength(CHARGE_STRENGTH))
-      .force('center', d3.forceCenter(width / 2, actualHeight / 2))
+      .force('center', d3.forceCenter(width / 2, height / 2))
       .force('collide', d3.forceCollide().radius((d: any) => (d.width || NODE_RADIUS_BASE) / 2 + 5));
 
     simulationRef.current = simulation;
@@ -125,7 +137,7 @@ const ForceDirectedGraph: React.FC<ForceDirectedGraphProps> = ({ data, exportTri
     return () => {
       simulation.stop();
     };
-  }, [nodes.length, links.length, isFullScreen]);
+  }, [nodes.length, links.length, svgDimensions.width, svgDimensions.height]);
 
   useEffect(() => {
     if (exportTrigger && svgRef.current) {
