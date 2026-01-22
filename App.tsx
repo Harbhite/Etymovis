@@ -1,18 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import NavPill from './components/NavPill';
 import SearchInput from './components/SearchInput';
-import TreeDiagram from './components/TreeDiagram';
-import FlowchartDiagram from './components/FlowchartDiagram';
 import ChronologicalLine from './components/ChronologicalLine';
-import HierarchicalEdgeBundling from './components/HierarchicalEdgeBundling';
-import ForceDirectedGraph from './components/ForceDirectedGraph';
 import ListView from './components/ListView';
 import NodeTooltip from './components/NodeTooltip';
-import SunburstChart from './components/SunburstChart';
-import TreemapDiagram from './components/TreemapDiagram';
-import CirclePacking from './components/CirclePacking';
-import RadialTree from './components/RadialTree';
 import SankeyDiagram from './components/SankeyDiagram';
+import SpiralTimeline from './components/SpiralTimeline';
+import GanttChart from './components/GanttChart';
+import HorizontalTimeline from './components/HorizontalTimeline';
+import Heatmap from './components/Heatmap';
+import Dendrogram from './components/Dendrogram';
+import StepwiseProcess from './components/StepwiseProcess';
 import FishboneDiagram from './components/FishboneDiagram';
 import LoadingSpinner from './components/LoadingSpinner';
 import AboutSection from './components/AboutSection';
@@ -22,23 +20,21 @@ import { fetchEtymology } from './services/geminiService';
 import { EtymologyTree, MindmapNode } from './types';
 import { exportSvgAs, exportHtmlAs } from './utils/exportUtils';
 
-type VisualizationMode = 'tree' | 'flowchart' | 'fishbone' | 'chronological' | 'edgeBundling' | 'force' | 'list' | 'sunburst' | 'treemap' | 'packing' | 'radial' | 'sankey';
+type VisualizationMode = 'fishbone' | 'chronological' | 'list' | 'sankey' | 'spiral' | 'gantt' | 'horizontal' | 'heatmap' | 'dendrogram' | 'stepwise';
 type Page = 'home' | 'about' | 'garden' | 'login';
 type ExportFormat = 'png' | 'svg' | 'pdf' | 'jpeg';
 type TooltipVariant = 'modern' | 'manuscript';
 
 const VIZ_OPTIONS = [
-  { id: 'tree', label: 'Botanical Tree' },
-  { id: 'flowchart', label: 'Flowchart' },
-  { id: 'fishbone', label: 'Fishbone' },
-  { id: 'radial', label: 'Radial' },
-  { id: 'sunburst', label: 'Sunburst' },
-  { id: 'edgeBundling', label: 'Bundling' },
-  { id: 'force', label: 'Force' },
-  { id: 'sankey', label: 'Flow' },
   { id: 'chronological', label: 'Timeline' },
-  { id: 'treemap', label: 'Treemap' },
-  { id: 'packing', label: 'Packing' },
+  { id: 'fishbone', label: 'Fishbone' },
+  { id: 'sankey', label: 'Flow' },
+  { id: 'spiral', label: 'Spiral' },
+  { id: 'gantt', label: 'Gantt' },
+  { id: 'horizontal', label: 'Horizontal' },
+  { id: 'heatmap', label: 'Heatmap' },
+  { id: 'dendrogram', label: 'Dendrogram' },
+  { id: 'stepwise', label: 'Stepwise' },
   { id: 'list', label: 'Manuscript' }
 ];
 
@@ -89,7 +85,7 @@ const App: React.FC = () => {
   const exportContainerRef = useRef<HTMLDivElement>(null);
   const isExportingRef = useRef<boolean>(false);
 
-  const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>('tree');
+  const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>('chronological');
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: any } | null>(null);
@@ -280,18 +276,16 @@ const App: React.FC = () => {
                       ${isDarkMode ? 'bg-dark-bg' : 'bg-bg-paper'}`}>
         {isLoading ? <LoadingSpinner progress={loadingProgress} /> : etymologyData ? (
           <>
-            {visualizationMode === 'tree' && <TreeDiagram data={etymologyData} searchTerm={searchTerm} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} isDarkMode={isDarkMode} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-            {visualizationMode === 'flowchart' && <FlowchartDiagram data={etymologyData} searchTerm={searchTerm} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} isDarkMode={isDarkMode} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
             {visualizationMode === 'fishbone' && <FishboneDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} isDarkMode={isDarkMode} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-            {visualizationMode === 'radial' && <RadialTree data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} isDarkMode={isDarkMode} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-            {visualizationMode === 'sunburst' && <SunburstChart data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-            {visualizationMode === 'treemap' && <TreemapDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-            {visualizationMode === 'packing' && <CirclePacking data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
             {visualizationMode === 'sankey' && <SankeyDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
             {visualizationMode === 'chronological' && <ChronologicalLine data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'edgeBundling' && <HierarchicalEdgeBundling data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'force' && <ForceDirectedGraph data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
             {visualizationMode === 'list' && <ListView data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, false)} isFullScreen={isFullScreen} />}
+            {visualizationMode === 'spiral' && <SpiralTimeline data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
+            {visualizationMode === 'gantt' && <GanttChart data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
+            {visualizationMode === 'horizontal' && <HorizontalTimeline data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
+            {visualizationMode === 'heatmap' && <Heatmap data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
+            {visualizationMode === 'dendrogram' && <Dendrogram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
+            {visualizationMode === 'stepwise' && <StepwiseProcess data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
           </>
         ) : !isLoading && (
           <div className={`text-center font-serif text-xl italic opacity-50 transition-colors duration-500 p-8 ${isDarkMode ? 'text-white' : 'text-text-light'}`}>

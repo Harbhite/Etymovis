@@ -53,9 +53,9 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({ data, exportTrigger, onCo
     traverse(data);
 
     const generator = sankey()
-      .nodeWidth(15)
-      .nodePadding(10)
-      .extent([[1, 1], [dimensions.width - 1, dimensions.height - 5]]);
+      .nodeWidth(20)
+      .nodePadding(20)
+      .extent([[1, 1], [dimensions.width - 1, dimensions.height - 20]]);
 
     const { nodes, links } = generator({
       nodes: nodes_list.map(d => Object.assign({}, d)),
@@ -70,12 +70,17 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({ data, exportTrigger, onCo
       .join('rect')
       .attr('x', d => d.x0!)
       .attr('y', d => d.y0!)
-      .attr('height', d => d.y1! - d.y0!)
+      .attr('height', d => Math.max(d.y1! - d.y0!, 5))
       .attr('width', d => d.x1! - d.x0!)
       .attr('fill', d => color((d as any).language))
+      .attr('rx', 4)
       .attr('opacity', 0)
+      .style('cursor', 'pointer')
       .on('mouseenter', (event, d) => {
-        d3.select(event.currentTarget).attr('opacity', 0.8);
+        d3.select(event.currentTarget)
+          .transition().duration(200)
+          .attr('transform', `scale(1.1)`)
+          .attr('opacity', 0.9);
         onNodeHover({
           x: event.clientX,
           y: event.clientY,
@@ -83,18 +88,22 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({ data, exportTrigger, onCo
         });
       })
       .on('mouseleave', (event) => {
-        d3.select(event.currentTarget).attr('opacity', 1);
+        d3.select(event.currentTarget)
+          .transition().duration(200)
+          .attr('transform', `scale(1)`)
+          .attr('opacity', 1);
         onNodeLeave();
       });
 
     rects.transition()
-      .duration(600)
-      .delay((_, i) => i * 50)
+      .duration(800)
+      .ease(d3.easeElasticOut)
+      .delay((_, i) => i * 100)
       .attr('opacity', 1);
 
     const paths = svg.append('g')
       .attr('fill', 'none')
-      .attr('stroke-opacity', 0.5)
+      .attr('stroke-opacity', 0.3)
       .selectAll('g')
       .data(links)
       .join('path')
@@ -102,28 +111,30 @@ const SankeyDiagram: React.FC<SankeyDiagramProps> = ({ data, exportTrigger, onCo
       .attr('stroke', d => color(((d.source as any).language)))
       .attr('stroke-width', d => Math.max(1, d.width!))
       .attr('stroke-dasharray', function(this: SVGPathElement) { return this.getTotalLength(); })
-      .attr('stroke-dashoffset', function(this: SVGPathElement) { return this.getTotalLength(); });
+      .attr('stroke-dashoffset', function(this: SVGPathElement) { return this.getTotalLength(); })
+      .style('mix-blend-mode', 'multiply');
 
     paths.transition()
-      .duration(1000)
-      .ease(d3.easeCubicOut)
-      .delay(500)
+      .duration(1500)
+      .ease(d3.easeCubicInOut)
+      .delay(600)
       .attr('stroke-dashoffset', 0);
 
     svg.append('g')
-      .style('font', '10px sans-serif')
+      .style('font', '12px sans-serif')
+      .style('font-weight', 'bold')
       .selectAll('text')
       .data(nodes)
       .join('text')
       .attr('opacity', 0)
-      .attr('x', d => d.x0! < dimensions.width / 2 ? d.x1! + 6 : d.x0! - 6)
+      .attr('x', d => d.x0! < dimensions.width / 2 ? d.x1! + 10 : d.x0! - 10)
       .attr('y', d => (d.y1! + d.y0!) / 2)
       .attr('dy', '0.35em')
       .attr('text-anchor', d => d.x0! < dimensions.width / 2 ? 'start' : 'end')
       .text(d => (d as any).name)
       .transition()
-      .duration(600)
-      .delay(800)
+      .duration(800)
+      .delay(1000)
       .attr('opacity', 1);
 
   }, [data, dimensions, onNodeHover, onNodeLeave]);
