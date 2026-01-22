@@ -3,7 +3,7 @@
 
 # Etymos: Trace the Ancestry of Your Thoughts
 
-This project was born out of my recent obsession with Linguistics and the fascinating, winding paths that words take through history. I found myself lost in dictionaries, tracing the roots of everyday words back to Proto-Indo-European or Old Norse, realizing that every word we speak is a relic of a bygone era, carrying centuries of culture, war, trade, and poetry within its syllables. I wanted to visualize this—to see the "family tree" of a word, not just read about it. And thus, Etymos was born.
+This project was born out of my recent obsession with Linguistics and the fascinating paths that words take through history. I found myself tracing the roots of everyday words back to Proto-Indo-European or Old Norse, and I realized that every word we speak is a relic of a bygone era, carrying centuries of culture, war, trade and poetry within its syllables. I wanted to visualize this, to see the "family tree" of a word, not just read about it. And thus, Etymos was born.
 
 ## What is Etymos?
 
