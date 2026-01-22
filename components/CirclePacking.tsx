@@ -17,10 +17,15 @@ const CirclePacking: React.FC<CirclePackingProps> = ({ data, exportTrigger, onCo
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   useLayoutEffect(() => {
-    if (containerRef.current) {
-      const { width, height } = containerRef.current.getBoundingClientRect();
-      setDimensions({ width, height: isFullScreen ? window.innerHeight : height });
-    }
+    const handleResize = () => {
+      if (containerRef.current) {
+        const { width, height } = containerRef.current.getBoundingClientRect();
+        setDimensions({ width, height: isFullScreen ? window.innerHeight : height });
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    handleResize();
+    return () => window.removeEventListener('resize', handleResize);
   }, [isFullScreen]);
 
   useEffect(() => {
