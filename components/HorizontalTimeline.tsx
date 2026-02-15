@@ -7,9 +7,11 @@ interface HorizontalTimelineProps {
   exportTrigger: any;
   onContentReadyForExport: (content: SVGSVGElement | null) => void;
   isFullScreen: boolean;
+  onNodeHover?: (tooltip: { x: number; y: number; content: any }) => void;
+  onNodeLeave?: () => void;
 }
 
-const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen }) => {
+const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen, onNodeHover, onNodeLeave }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -71,7 +73,9 @@ const HorizontalTimeline: React.FC<HorizontalTimelineProps> = ({ data, exportTri
     const groups = g.selectAll('g')
       .data(nodes)
       .join('g')
-      .attr('transform', (d, i) => `translate(${xScale(i.toString())}, 0)`);
+      .attr('transform', (d, i) => `translate(${xScale(i.toString())}, 0)`)
+      .on('mouseover', (event, d) => onNodeHover && onNodeHover({ x: event.clientX, y: event.clientY, content: d }))
+      .on('mouseout', () => onNodeLeave && onNodeLeave());
 
     groups.append('circle')
       .attr('r', 0)

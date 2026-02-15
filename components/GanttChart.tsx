@@ -7,9 +7,11 @@ interface GanttChartProps {
   exportTrigger: any;
   onContentReadyForExport: (content: SVGSVGElement | null) => void;
   isFullScreen: boolean;
+  onNodeHover?: (tooltip: { x: number; y: number; content: any }) => void;
+  onNodeLeave?: () => void;
 }
 
-const GanttChart: React.FC<GanttChartProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen }) => {
+const GanttChart: React.FC<GanttChartProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen, onNodeHover, onNodeLeave }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -106,6 +108,8 @@ const GanttChart: React.FC<GanttChartProps> = ({ data, exportTrigger, onContentR
       .attr('fill', (d: any) => color(d.language))
       .attr('rx', 4)
       .attr('width', 0)
+      .on('mouseover', (event, d) => onNodeHover && onNodeHover({ x: event.clientX, y: event.clientY, content: d }))
+      .on('mouseout', () => onNodeLeave && onNodeLeave())
       .transition()
       .duration(800)
       .delay((_, i) => i * 100)

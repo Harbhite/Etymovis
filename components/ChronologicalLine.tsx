@@ -7,6 +7,8 @@ interface ChronologicalLineProps {
   exportTrigger: { format: 'png' | 'svg' | 'pdf' | 'jpeg' | null; timestamp: number } | null;
   onContentReadyForExport: (content: SVGSVGElement | null) => void;
   isFullScreen: boolean;
+  onNodeHover?: (tooltip: { x: number; y: number; content: any }) => void;
+  onNodeLeave?: () => void;
 }
 
 const NODE_WIDTH = 200;
@@ -38,7 +40,7 @@ const getLanguageFamily = (language: string): string => {
   return 'Other';
 };
 
-const ChronologicalLine: React.FC<ChronologicalLineProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen }) => {
+const ChronologicalLine: React.FC<ChronologicalLineProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen, onNodeHover, onNodeLeave }) => {
   const [nodes, setNodes] = useState<MindmapNode[]>([]);
   const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
@@ -333,6 +335,8 @@ const ChronologicalLine: React.FC<ChronologicalLineProps> = ({ data, exportTrigg
                 <div
                   className="flex flex-col items-center justify-center p-2 rounded-xl border-b-4 bg-white shadow-soft text-center h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-deep group cursor-default"
                   style={{ borderColor: node.color }}
+                  onMouseEnter={(e) => onNodeHover && onNodeHover({ x: e.clientX, y: e.clientY, content: node })}
+                  onMouseLeave={() => onNodeLeave && onNodeLeave()}
                 >
                   <div className="font-sans text-[10px] uppercase tracking-wider text-text-light group-hover:text-text-ink transition-colors">{node.language}</div>
                   <div className="font-serif text-lg font-bold text-text-ink leading-tight mt-1">

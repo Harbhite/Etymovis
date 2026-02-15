@@ -7,9 +7,11 @@ interface HeatmapProps {
   exportTrigger: any;
   onContentReadyForExport: (content: SVGSVGElement | null) => void;
   isFullScreen: boolean;
+  onNodeHover?: (tooltip: { x: number; y: number; content: any }) => void;
+  onNodeLeave?: () => void;
 }
 
-const Heatmap: React.FC<HeatmapProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen }) => {
+const Heatmap: React.FC<HeatmapProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen, onNodeHover, onNodeLeave }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -99,9 +101,11 @@ const Heatmap: React.FC<HeatmapProps> = ({ data, exportTrigger, onContentReadyFo
 
     cells.on('mouseover', function(event, d) {
       d3.select(this).style('stroke', 'black').style('opacity', 1);
+      if (onNodeHover) onNodeHover({ x: event.clientX, y: event.clientY, content: d });
     })
     .on('mouseleave', function(event, d) {
       d3.select(this).style('stroke', 'none').style('opacity', 0.8);
+      if (onNodeLeave) onNodeLeave();
     });
 
     // Add word labels inside
