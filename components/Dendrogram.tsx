@@ -7,9 +7,11 @@ interface DendrogramProps {
   exportTrigger: any;
   onContentReadyForExport: (content: SVGSVGElement | null) => void;
   isFullScreen: boolean;
+  onNodeHover?: (tooltip: { x: number; y: number; content: any }) => void;
+  onNodeLeave?: () => void;
 }
 
-const Dendrogram: React.FC<DendrogramProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen }) => {
+const Dendrogram: React.FC<DendrogramProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen, onNodeHover, onNodeLeave }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -60,7 +62,9 @@ const Dendrogram: React.FC<DendrogramProps> = ({ data, exportTrigger, onContentR
     const nodes = g.selectAll('g')
       .data(root.descendants())
       .join('g')
-      .attr('transform', d => `translate(${d.y},${d.x})`);
+      .attr('transform', d => `translate(${d.y},${d.x})`)
+      .on('mouseover', (event, d) => onNodeHover && onNodeHover({ x: event.clientX, y: event.clientY, content: d.data }))
+      .on('mouseout', () => onNodeLeave && onNodeLeave());
 
     nodes.append('circle')
       .attr('r', 0)

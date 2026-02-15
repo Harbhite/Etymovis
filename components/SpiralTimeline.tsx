@@ -7,9 +7,11 @@ interface SpiralTimelineProps {
   exportTrigger: any;
   onContentReadyForExport: (content: SVGSVGElement | null) => void;
   isFullScreen: boolean;
+  onNodeHover?: (tooltip: { x: number; y: number; content: any }) => void;
+  onNodeLeave?: () => void;
 }
 
-const SpiralTimeline: React.FC<SpiralTimelineProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen }) => {
+const SpiralTimeline: React.FC<SpiralTimelineProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen, onNodeHover, onNodeLeave }) => {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
@@ -95,7 +97,9 @@ const SpiralTimeline: React.FC<SpiralTimelineProps> = ({ data, exportTrigger, on
     const dots = svg.selectAll('g')
         .data(spiralData)
         .join('g')
-        .attr('transform', d => `translate(${d.x},${d.y})`);
+        .attr('transform', d => `translate(${d.x},${d.y})`)
+        .on('mouseover', (event, d) => onNodeHover && onNodeHover({ x: event.clientX, y: event.clientY, content: d }))
+        .on('mouseout', () => onNodeLeave && onNodeLeave());
 
     dots.append('circle')
         .attr('r', 0)

@@ -21,7 +21,7 @@ import { EtymologyTree, MindmapNode } from './types';
 import { exportSvgAs, exportHtmlAs } from './utils/exportUtils';
 
 type VisualizationMode = 'fishbone' | 'chronological' | 'list' | 'sankey' | 'spiral' | 'gantt' | 'horizontal' | 'heatmap' | 'dendrogram' | 'stepwise';
-type Page = 'home' | 'about' | 'garden' | 'login';
+type Page = 'home' | 'about' | 'garden' | 'login' | 'result';
 type ExportFormat = 'png' | 'svg' | 'pdf' | 'jpeg';
 type TooltipVariant = 'modern' | 'manuscript';
 
@@ -127,6 +127,7 @@ const App: React.FC = () => {
       
       setLoadingProgress(100);
       setEtymologyData(data);
+      setActivePage('result');
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     } catch (err: any) {
@@ -188,130 +189,145 @@ const App: React.FC = () => {
       {activePage === 'garden' && <GardenSection onClose={() => setActivePage('home')} onSelect={handleBloom} />}
       {activePage === 'login' && <LoginModal onClose={() => setActivePage('home')} />}
 
-      <div className={`relative max-w-screen-xl mx-auto px-5 pt-36 pb-16 flex flex-col items-center z-10 ${isFullScreen ? 'hidden' : ''}`}>
-        <h1 className="font-serif text-5xl md:text-5xl sm:text-4xl font-normal text-center tracking-tight mb-6 px-4">
-          Trace the <span className={`italic transition-colors duration-500 ${isDarkMode ? 'text-accent-terra' : 'text-accent-green'}`}>ancestry</span> of your thoughts.
-        </h1>
-        <SearchInput onBloom={handleBloom} isLoading={isLoading} />
-        
-        {error && (
-          <div className="mt-4 p-4 bg-brick/10 border border-brick/20 rounded-xl text-brick text-sm font-medium">
-            {error}
-          </div>
-        )}
+      {/* Home Page Content */}
+      {activePage === 'home' && !isFullScreen && (
+        <div className="relative max-w-screen-xl mx-auto px-5 pt-36 pb-16 flex flex-col items-center z-10">
+          <h1 className="font-serif text-5xl md:text-5xl sm:text-4xl font-normal text-center tracking-tight mb-6 px-4">
+            Trace the <span className={`italic transition-colors duration-500 ${isDarkMode ? 'text-accent-terra' : 'text-accent-green'}`}>ancestry</span> of your thoughts.
+          </h1>
+          <SearchInput onBloom={handleBloom} isLoading={isLoading} />
 
-        <div className="mt-8 flex flex-wrap justify-center gap-2 max-w-5xl px-2">
-          {VIZ_OPTIONS.map(viz => (
-            <button
-              key={viz.id}
-              onClick={() => setVisualizationMode(viz.id as VisualizationMode)}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                visualizationMode === viz.id 
-                  ? (isDarkMode ? 'bg-accent-terra text-white shadow-md scale-105' : 'bg-accent-green text-white shadow-md scale-105') 
-                  : (isDarkMode ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-white border border-gray-200 text-text-light hover:bg-gray-50')
-              }`}
-            >
-              {viz.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 w-full max-w-xl px-4">
-          {etymologyData && (
-            <div className="flex w-full gap-4">
-              <div className="relative flex-1">
-                <input 
-                  type="text" 
-                  placeholder="Find root..." 
-                  value={searchTerm} 
-                  onChange={e=>setSearchTerm(e.target.value)} 
-                  className={`w-full p-3 pl-10 rounded-xl border transition-colors duration-300 ${isDarkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-gray-200 text-text-ink'}`} 
-                />
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-              </div>
-              <div className="relative" ref={exportContainerRef}>
-                <button 
-                  onClick={() => setShowExportOptions(!showExportOptions)} 
-                  className="bg-accent-terra text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-transform active:scale-95"
-                >
-                  Export
-                </button>
-                {showExportOptions && (
-                  <div className={`absolute right-0 mt-2 w-40 rounded-xl shadow-deep py-2 z-[200] overflow-hidden animate-slide-in-top ${isDarkMode ? 'bg-gray-800 text-white border border-white/10' : 'bg-white text-text-ink border border-gray-100'}`}>
-                    {['png', 'jpeg', 'pdf', 'svg'].map(f => (
-                      <button 
-                        key={f} 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setExportTrigger({ format: f as ExportFormat, timestamp: Date.now() });
-                          setShowExportOptions(false);
-                        }} 
-                        className={`block w-full text-left px-4 py-3 text-sm uppercase font-bold tracking-wider ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
-                      >
-                        {f}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+          {error && (
+            <div className="mt-4 p-4 bg-brick/10 border border-brick/20 rounded-xl text-brick text-sm font-medium">
+              {error}
             </div>
           )}
-          
-          <button 
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-3 rounded-xl transition-all duration-300 self-end sm:self-auto ${isDarkMode ? 'bg-white/10 text-yellow-400 hover:bg-white/20' : 'bg-black/5 text-gray-600 hover:bg-black/10'}`}
-            title="Toggle Visual Mode"
-          >
-            {isDarkMode ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M17.66 6.34l1.42-1.42"/></svg>
-            ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            )}
-          </button>
         </div>
-      </div>
+      )}
 
-      <div className={`visualization-container w-full mt-12 pb-16 transition-all duration-500 relative min-h-[600px] flex items-center justify-center
-                      ${isFullScreen ? 'fixed inset-0 !mt-0 !pb-0 z-[1000]' : ''}
-                      ${isDarkMode ? 'bg-dark-bg' : 'bg-bg-paper'}`}>
-        {isLoading ? <LoadingSpinner progress={loadingProgress} /> : etymologyData ? (
-          <>
-            {visualizationMode === 'fishbone' && <FishboneDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} isDarkMode={isDarkMode} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-            {visualizationMode === 'sankey' && <SankeyDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-            {visualizationMode === 'chronological' && <ChronologicalLine data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'list' && <ListView data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, false)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'spiral' && <SpiralTimeline data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'gantt' && <GanttChart data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'horizontal' && <HorizontalTimeline data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'heatmap' && <Heatmap data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'dendrogram' && <Dendrogram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-            {visualizationMode === 'stepwise' && <StepwiseProcess data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} />}
-          </>
-        ) : !isLoading && (
-          <div className={`text-center font-serif text-xl italic opacity-50 transition-colors duration-500 p-8 ${isDarkMode ? 'text-white' : 'text-text-light'}`}>
-            Plant a seed in the search bar to begin.
-          </div>
-        )}
-      </div>
-
-      {/* Full-Screen Controls Overlay */}
-      {etymologyData && isFullScreen && (
-        <div className="fixed top-0 left-0 right-0 z-[1200] pt-8 flex flex-col items-center pointer-events-none">
-          {/* Viz Switcher in Full Screen - Moved to Top */}
-          <div className={`flex items-center gap-2 p-2 rounded-2xl backdrop-blur-xl border border-white/10 pointer-events-auto overflow-x-auto max-w-[90vw] no-scrollbar shadow-2xl ${isDarkMode ? 'bg-black/40' : 'bg-white/40'}`}>
+      {/* Result Page Controls */}
+      {activePage === 'result' && !isFullScreen && (
+        <div className="relative max-w-screen-xl mx-auto px-5 pt-10 flex flex-col items-center z-10">
+          <div className="flex flex-wrap justify-center gap-2 max-w-5xl px-2">
             {VIZ_OPTIONS.map(viz => (
               <button
                 key={viz.id}
                 onClick={() => setVisualizationMode(viz.id as VisualizationMode)}
-                className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  visualizationMode === viz.id 
-                    ? (isDarkMode ? 'bg-accent-terra text-white' : 'bg-accent-green text-white') 
-                    : (isDarkMode ? 'text-white/60 hover:text-white' : 'text-text-ink/60 hover:text-text-ink')
+                className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                  visualizationMode === viz.id
+                    ? (isDarkMode ? 'bg-accent-terra text-white shadow-md scale-105' : 'bg-accent-green text-white shadow-md scale-105')
+                    : (isDarkMode ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-white border border-gray-200 text-text-light hover:bg-gray-50')
                 }`}
               >
                 {viz.label}
               </button>
             ))}
+          </div>
+
+          <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 w-full max-w-xl px-4">
+            {etymologyData && (
+              <div className="flex w-full gap-4">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Find root..."
+                    value={searchTerm}
+                    onChange={e=>setSearchTerm(e.target.value)}
+                    className={`w-full p-3 pl-10 rounded-xl border transition-colors duration-300 ${isDarkMode ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-gray-200 text-text-ink'}`}
+                  />
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <div className="relative" ref={exportContainerRef}>
+                  <button
+                    onClick={() => setShowExportOptions(!showExportOptions)}
+                    className="bg-accent-terra text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 transition-transform active:scale-95"
+                  >
+                    Export
+                  </button>
+                  {showExportOptions && (
+                    <div className={`absolute right-0 mt-2 w-40 rounded-xl shadow-deep py-2 z-[200] overflow-hidden animate-slide-in-top ${isDarkMode ? 'bg-gray-800 text-white border border-white/10' : 'bg-white text-text-ink border border-gray-100'}`}>
+                      {['png', 'jpeg', 'pdf', 'svg'].map(f => (
+                        <button
+                          key={f}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExportTrigger({ format: f as ExportFormat, timestamp: Date.now() });
+                            setShowExportOptions(false);
+                          }}
+                          className={`block w-full text-left px-4 py-3 text-sm uppercase font-bold tracking-wider ${isDarkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50'}`}
+                        >
+                          {f}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className={`p-3 rounded-xl transition-all duration-300 self-end sm:self-auto ${isDarkMode ? 'bg-white/10 text-yellow-400 hover:bg-white/20' : 'bg-black/5 text-gray-600 hover:bg-black/10'}`}
+              title="Toggle Visual Mode"
+            >
+              {isDarkMode ? (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M17.66 6.34l1.42-1.42"/></svg>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Visualization Container - Only on Result Page (or full screen) */}
+      {(activePage === 'result' || isFullScreen) && (
+        <div className={`visualization-container w-full mt-4 pb-16 transition-all duration-500 relative min-h-[600px] flex items-center justify-center
+                        ${isFullScreen ? 'fixed inset-0 !mt-0 !pb-0 z-[1000]' : ''}
+                        ${isDarkMode ? 'bg-dark-bg' : 'bg-bg-paper'}`}>
+          {isLoading ? <LoadingSpinner progress={loadingProgress} /> : etymologyData ? (
+            <>
+              {visualizationMode === 'fishbone' && <FishboneDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} isDarkMode={isDarkMode} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'sankey' && <SankeyDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'chronological' && <ChronologicalLine data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'list' && <ListView data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, false)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'spiral' && <SpiralTimeline data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'gantt' && <GanttChart data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'horizontal' && <HorizontalTimeline data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'heatmap' && <Heatmap data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'dendrogram' && <Dendrogram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'stepwise' && <StepwiseProcess data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+            </>
+          ) : !isLoading && (
+          <div className={`text-center font-serif text-xl italic opacity-50 transition-colors duration-500 p-8 ${isDarkMode ? 'text-white' : 'text-text-light'}`}>
+            Plant a seed in the search bar to begin.
+          </div>
+        )}
+      </div>
+      )}
+
+      {/* Full-Screen Controls Overlay */}
+      {etymologyData && isFullScreen && (
+        <div className="fixed top-0 left-0 right-0 z-[1200] pt-8 flex flex-col items-center pointer-events-none">
+          {/* Viz Switcher in Full Screen - Dropdown */}
+          <div className={`pointer-events-auto shadow-2xl rounded-xl overflow-hidden ${isDarkMode ? 'bg-black/40' : 'bg-white/40'} backdrop-blur-xl border border-white/10`}>
+             <select
+                value={visualizationMode}
+                onChange={(e) => setVisualizationMode(e.target.value as VisualizationMode)}
+                className={`appearance-none bg-transparent border-none px-6 py-3 pr-10 font-bold text-sm cursor-pointer outline-none ${isDarkMode ? 'text-white' : 'text-text-ink'}`}
+                style={{
+                  backgroundImage: `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="${isDarkMode ? 'white' : 'black'}"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>')`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 0.75rem center',
+                  backgroundSize: '1em'
+                }}
+             >
+                {VIZ_OPTIONS.map(viz => (
+                  <option key={viz.id} value={viz.id} className={isDarkMode ? 'bg-dark-bg text-white' : 'bg-bg-paper text-text-ink'}>
+                    {viz.label}
+                  </option>
+                ))}
+             </select>
           </div>
         </div>
       )}

@@ -7,24 +7,35 @@ interface ListViewProps {
   exportTrigger: { format: 'png' | 'svg' | 'pdf' | 'jpeg' | null; timestamp: number } | null;
   onContentReadyForExport: (content: HTMLElement | null) => void; // New callback, content is HTML
   isFullScreen: boolean;
+  onNodeHover?: (tooltip: { x: number; y: number; content: any }) => void;
+  onNodeLeave?: () => void;
 }
 
-const renderNode = (node: EtymologyTree, level: number = 0) => (
+const renderNode = (
+  node: EtymologyTree,
+  level: number = 0,
+  onNodeHover?: (tooltip: { x: number; y: number; content: any }) => void,
+  onNodeLeave?: () => void
+) => (
   <div key={`${node.word}-${node.language}-${level}`} className={`ml-${level * 4} py-1`}>
-    <div className="flex items-baseline gap-2">
+    <div
+      className="flex items-baseline gap-2 hover:bg-white/10 p-1 rounded cursor-pointer transition-colors w-fit"
+      onMouseEnter={(e) => onNodeHover && onNodeHover({ x: e.clientX, y: e.clientY, content: node })}
+      onMouseLeave={() => onNodeLeave && onNodeLeave()}
+    >
       <span className="font-semibold text-text-ink">{node.word}</span>
       <span className="text-text-light text-sm italic">({node.language})</span>
       {node.meaning && <span className="text-text-light text-sm">"{node.meaning}"</span>}
     </div>
     {node.children && (
       <div className="border-l border-gray-300 ml-2 pl-4">
-        {node.children.map(child => renderNode(child, level + 1))}
+        {node.children.map(child => renderNode(child, level + 1, onNodeHover, onNodeLeave))}
       </div>
     )}
   </div>
 );
 
-const ListView: React.FC<ListViewProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen }) => {
+const ListView: React.FC<ListViewProps> = ({ data, exportTrigger, onContentReadyForExport, isFullScreen, onNodeHover, onNodeLeave }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -49,7 +60,7 @@ const ListView: React.FC<ListViewProps> = ({ data, exportTrigger, onContentReady
                  ${isFullScreen ? 'h-full' : 'min-h-[600px] h-[calc(100vh-250px)]'}`}
     >
       <div className="space-y-2 p-4 font-sans">
-        {renderNode(data)}
+        {renderNode(data, 0, onNodeHover, onNodeLeave)}
       </div>
     </div>
   );
