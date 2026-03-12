@@ -4,14 +4,8 @@ import SearchInput from './components/SearchInput';
 import ChronologicalLine from './components/ChronologicalLine';
 import ListView from './components/ListView';
 import NodeTooltip from './components/NodeTooltip';
-import SankeyDiagram from './components/SankeyDiagram';
-import SpiralTimeline from './components/SpiralTimeline';
-import GanttChart from './components/GanttChart';
-import HorizontalTimeline from './components/HorizontalTimeline';
-import Heatmap from './components/Heatmap';
-import Dendrogram from './components/Dendrogram';
-import StepwiseProcess from './components/StepwiseProcess';
 import FishboneDiagram from './components/FishboneDiagram';
+import MermaidDiagram from './components/MermaidDiagram';
 import LoadingSpinner from './components/LoadingSpinner';
 import AboutSection from './components/AboutSection';
 import GardenSection from './components/GardenSection';
@@ -20,22 +14,16 @@ import { fetchEtymology } from './services/geminiService';
 import { EtymologyTree, MindmapNode } from './types';
 import { exportSvgAs, exportHtmlAs } from './utils/exportUtils';
 
-type VisualizationMode = 'fishbone' | 'chronological' | 'list' | 'sankey' | 'spiral' | 'gantt' | 'horizontal' | 'heatmap' | 'dendrogram' | 'stepwise';
+type VisualizationMode = 'fishbone' | 'chronological' | 'list' | 'mermaid';
 type Page = 'home' | 'about' | 'garden' | 'login' | 'result';
 type ExportFormat = 'png' | 'svg' | 'pdf' | 'jpeg';
 type TooltipVariant = 'modern' | 'manuscript';
 
 const VIZ_OPTIONS = [
-  { id: 'chronological', label: 'Timeline' },
+  { id: 'list', label: 'Manuscript' },
   { id: 'fishbone', label: 'Fishbone' },
-  { id: 'sankey', label: 'Flow' },
-  { id: 'spiral', label: 'Spiral' },
-  { id: 'gantt', label: 'Gantt' },
-  { id: 'horizontal', label: 'Horizontal' },
-  { id: 'heatmap', label: 'Heatmap' },
-  { id: 'dendrogram', label: 'Dendrogram' },
-  { id: 'stepwise', label: 'Stepwise' },
-  { id: 'list', label: 'Manuscript' }
+  { id: 'chronological', label: 'Timeline' },
+  { id: 'mermaid', label: 'Flow' }
 ];
 
 const Confetti: React.FC = () => {
@@ -288,15 +276,9 @@ const App: React.FC = () => {
           {isLoading ? <LoadingSpinner progress={loadingProgress} /> : etymologyData ? (
             <>
               {visualizationMode === 'fishbone' && <FishboneDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} isDarkMode={isDarkMode} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-              {visualizationMode === 'sankey' && <SankeyDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
+              {visualizationMode === 'mermaid' && <MermaidDiagram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
               {visualizationMode === 'chronological' && <ChronologicalLine data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
               {visualizationMode === 'list' && <ListView data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, false)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-              {visualizationMode === 'spiral' && <SpiralTimeline data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-              {visualizationMode === 'gantt' && <GanttChart data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-              {visualizationMode === 'horizontal' && <HorizontalTimeline data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-              {visualizationMode === 'heatmap' && <Heatmap data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-              {visualizationMode === 'dendrogram' && <Dendrogram data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
-              {visualizationMode === 'stepwise' && <StepwiseProcess data={etymologyData} exportTrigger={exportTrigger} onContentReadyForExport={c => handleContentExport(c, true)} isFullScreen={isFullScreen} onNodeHover={setTooltip} onNodeLeave={()=>setTooltip(null)} />}
             </>
           ) : !isLoading && (
           <div className={`text-center font-serif text-xl italic opacity-50 transition-colors duration-500 p-8 ${isDarkMode ? 'text-white' : 'text-text-light'}`}>
